@@ -31,6 +31,80 @@ Before deliberation begins, four independent agents assess the candidate dossier
 
 ---
 
+## System Architecture
+
+MACE models an executive hiring committee through an adversarial 5-stage evaluation pipeline. Instead of relying on a single prompt or averaging scores together, MACE isolates specialist AI agents, detects disagreements, conducts turn-based dialectic debates, and produces evidence-grounded adjudication dossiers.
+
+```
+                                      ┌────────────────────────────────────────┐
+                                      │   Input Documents                      │
+                                      │   (Resume, JD, Official Transcript)    │
+                                      └──────────────────┬─────────────────────┘
+                                                         │
+                                                         ▼
+                                 ┌─────────────────────────────────────────────────┐
+                                 │ STAGE 1: Ground-Truth Evidence Store            │
+                                 │ • Atomic claim extraction with citation IDs     │
+                                 │ • Cross-document discrepancy auditing (E001...) │
+                                 └───────────────────────┬─────────────────────────┘
+                                                         │
+                        ┌────────────────────────────────┴────────────────────────────────┐
+                        │                                                                 │
+                        ▼ STAGE 2: Zero-Anchor Isolated Specialist Pass                   ▼
+       ┌───────────────────────────────┐                             ┌───────────────────────────────┐
+       │      Technical Architect      │                             │     Culture & Behavioral      │
+       │   (Systems, Algorithms, CS)   │                             │  (Humility, Comms, Dynamics)  │
+       └───────────────┬───────────────┘                             └───────────────┬───────────────┘
+                       │                                                             │
+                       │               ┌───────────────────────────────┐             │
+                       │               │     Hiring Manager Lead       │             │
+                       ├──────────────►│    (Velocity, Product, ROI)   │◄────────────┤
+                       │               └───────────────┬───────────────┘             │
+                       │                               │                             │
+                       │               ┌───────────────▼───────────────┐             │
+                       │               │     Risk & Auditor Lead       │             │
+                       └──────────────►│ (Integrity, Tenure, Padding)  │◄────────────┘
+                                       └───────────────┬───────────────┘
+                                                       │
+                                                       ▼
+                                 ┌─────────────────────────────────────────────────┐
+                                 │ STAGE 3: Disagreement & Variance Engine         │
+                                 │ • Calculates mathematical variance (Vd >= 1.5)  │
+                                 │ • Identifies core philosophical tensions        │
+                                 └─────────────────────┬───────────────────────────┘
+                                                       │
+                                                       ▼
+                                 ┌─────────────────────────────────────────────────┐
+                                 │ STAGE 4: Multi-Turn Adversarial Voice Debate    │
+                                 │ • Challenge, rebuttal & position revisions      │
+                                 │ • Multi-voice browser speech synthesis          │
+                                 └─────────────────────┬───────────────────────────┘
+                                                       │
+                                                       ▼
+                                 ┌─────────────────────────────────────────────────┐
+                                 │ STAGE 5: Evidence-Weighted Adjudication         │
+                                 │ • Non-averaging verdict (Strong/Lean Hire/No)   │
+                                 │ • Confidence rating & risk mitigation terms     │
+                                 └─────────────────────┬───────────────────────────┘
+                                                       │
+                                                       ▼
+                                 ┌─────────────────────────────────────────────────┐
+                                 │ Persistence & UI Layer                          │
+                                 │ • Firestore Cloud Sync / Local Cache            │
+                                 │ • Interactive Dossier, Citations, a11y UI       │
+                                 └─────────────────────────────────────────────────┘
+```
+
+### Core Pipeline Stages
+
+1. **Ground-Truth Ingestion & Citation Indexing**: Ingests primary candidate documents (resume, transcript, job description) and builds a tamper-evident citation store (`E001`, `E002`, etc.) with strict line-level indices and contradiction flags.
+2. **Isolated Specialist Evaluation (Zero-Anchor Guarantee)**: Four specialist personas evaluate the candidate in parallel isolated context windows to prevent peer anchoring bias and halo effects.
+3. **Mathematical Disagreement Detection**: Measures statistical variance across rubric dimensions ($V_d \ge 1.5$) to highlight core philosophical conflicts (e.g., technical execution vs. integrity risk).
+4. **Multi-Turn Adversarial Voice Debate**: Turn-based dialectic where agents challenge claims, defend hypotheses with document citations, revise positions, and play back through multi-voice speech synthesis.
+5. **Evidence-Weighted Non-Averaging Adjudication**: Synthesizes verified primary records ($W=1.0$), discounts unsubstantiated claims ($W=0.35$), and applies risk penalty thresholding to render a definitive hiring verdict.
+
+---
+
 ## Tech Stack & Architecture
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Lucide Icons, Canvas Confetti.
