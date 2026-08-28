@@ -1,0 +1,6 @@
+{
+  "name": "AI Hiring Panel",
+  "description": "Explainable multi-agent AI hiring evaluation and debate platform with independent AI personas, disagreement detection, real-time debate, and evidence-backed adjudication.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
