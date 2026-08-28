@@ -355,52 +355,94 @@ export default function App() {
         </div>
 
         {/* Tab Views */}
-        {activeTab === 'dossier' && finalDecision && (
-          <FinalReportView
-            decision={finalDecision}
-            profile={profile}
-            jobDescription={jobDescription}
-            assessments={assessments}
-            evidenceStore={evidenceStore}
-            onSelectEvidence={(id) => setSelectedEvidenceId(id)}
-          />
-        )}
+        <div className="focus:outline-hidden">
+          {activeTab === 'dossier' && finalDecision && (
+            <section
+              id="tabpanel-dossier"
+              role="tabpanel"
+              aria-labelledby="nav-tab-dossier"
+              tabIndex={0}
+              className="focus:outline-hidden"
+            >
+              <FinalReportView
+                decision={finalDecision}
+                profile={profile}
+                jobDescription={jobDescription}
+                assessments={assessments}
+                evidenceStore={evidenceStore}
+                onSelectEvidence={(id) => setSelectedEvidenceId(id)}
+              />
+            </section>
+          )}
 
-        {activeTab === 'personas' && (
-          <AgentCardsGrid
-            assessments={assessments}
-            positionRevisions={positionRevisions}
-            evidenceStore={evidenceStore}
-            onSelectEvidence={(id) => setSelectedEvidenceId(id)}
-          />
-        )}
+          {activeTab === 'personas' && (
+            <section
+              id="tabpanel-personas"
+              role="tabpanel"
+              aria-labelledby="nav-tab-personas"
+              tabIndex={0}
+              className="focus:outline-hidden"
+            >
+              <AgentCardsGrid
+                assessments={assessments}
+                positionRevisions={positionRevisions}
+                evidenceStore={evidenceStore}
+                onSelectEvidence={(id) => setSelectedEvidenceId(id)}
+              />
+            </section>
+          )}
 
-        {activeTab === 'debate' && (
-          <DebateRoom
-            debateMessages={debateMessages}
-            disputes={disputes}
-            positionRevisions={positionRevisions}
-            evidenceStore={evidenceStore}
-            onSelectEvidence={(id) => setSelectedEvidenceId(id)}
-          />
-        )}
+          {activeTab === 'debate' && (
+            <section
+              id="tabpanel-debate"
+              role="tabpanel"
+              aria-labelledby="nav-tab-debate"
+              tabIndex={0}
+              className="focus:outline-hidden"
+            >
+              <DebateRoom
+                debateMessages={debateMessages}
+                disputes={disputes}
+                positionRevisions={positionRevisions}
+                evidenceStore={evidenceStore}
+                onSelectEvidence={(id) => setSelectedEvidenceId(id)}
+              />
+            </section>
+          )}
 
-        {activeTab === 'evidence' && (
-          <EvidenceExplorer
-            evidenceStore={evidenceStore}
-            contradictions={profile.contradictions || []}
-            onSelectEvidence={(id) => setSelectedEvidenceId(id)}
-          />
-        )}
+          {activeTab === 'evidence' && (
+            <section
+              id="tabpanel-evidence"
+              role="tabpanel"
+              aria-labelledby="nav-tab-evidence"
+              tabIndex={0}
+              className="focus:outline-hidden"
+            >
+              <EvidenceExplorer
+                evidenceStore={evidenceStore}
+                contradictions={profile.contradictions || []}
+                onSelectEvidence={(id) => setSelectedEvidenceId(id)}
+              />
+            </section>
+          )}
 
-        {activeTab === 'profile' && (
-          <CandidateProfileView
-            profile={profile}
-            jobDescription={jobDescription}
-            evidenceStore={evidenceStore}
-            onSelectEvidence={(id) => setSelectedEvidenceId(id)}
-          />
-        )}
+          {activeTab === 'profile' && (
+            <section
+              id="tabpanel-profile"
+              role="tabpanel"
+              aria-labelledby="nav-tab-profile"
+              tabIndex={0}
+              className="focus:outline-hidden"
+            >
+              <CandidateProfileView
+                profile={profile}
+                jobDescription={jobDescription}
+                evidenceStore={evidenceStore}
+                onSelectEvidence={(id) => setSelectedEvidenceId(id)}
+              />
+            </section>
+          )}
+        </div>
       </main>
 
       {/* Editorial Footer */}

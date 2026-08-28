@@ -37,6 +37,9 @@ export const PipelineProgressModal: React.FC<PipelineProgressModalProps> = ({
   return (
     <div
       id="pipeline-progress-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pipeline-progress-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121212]/60 backdrop-blur-xs animate-in fade-in duration-200"
     >
       <div
@@ -44,11 +47,11 @@ export const PipelineProgressModal: React.FC<PipelineProgressModalProps> = ({
         className="w-full max-w-lg bg-[#FDFCFB] border border-[#121212]/20 rounded-xs shadow-2xl p-6 sm:p-7 text-[#121212] space-y-6"
       >
         <div className="flex items-center gap-3.5 pb-4 border-b border-[#121212]/15">
-          <div className="p-3 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] text-[#D94F33]">
+          <div className="p-3 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] text-[#D94F33]" aria-hidden="true">
             <RotateCw className="w-6 h-6 animate-spin" />
           </div>
           <div>
-            <h3 className="text-lg font-serif-editorial font-bold text-[#121212]">
+            <h3 id="pipeline-progress-title" className="text-lg font-serif-editorial font-bold text-[#121212]">
               Multi-Agent Evaluation Pipeline
             </h3>
             <p className="text-xs text-[#57534E] font-serif-editorial italic">
@@ -58,7 +61,15 @@ export const PipelineProgressModal: React.FC<PipelineProgressModalProps> = ({
         </div>
 
         {/* Current Active Step Highlight */}
-        <div className="p-4 rounded-xs bg-[#FAF0E6] border border-[#E5CFB8] space-y-1">
+        <div
+          role="progressbar"
+          aria-valuenow={Math.round((currentStep / 6) * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Pipeline Stage ${currentStep} of 6: ${stepTitle}`}
+          aria-live="polite"
+          className="p-4 rounded-xs bg-[#FAF0E6] border border-[#E5CFB8] space-y-1"
+        >
           <div className="flex items-center justify-between text-xs font-bold text-[#8C510A] uppercase tracking-wider">
             <span className="font-serif-editorial">Stage {currentStep} of 6: {stepTitle}</span>
             <span className="font-mono">{Math.round((currentStep / 6) * 100)}%</span>

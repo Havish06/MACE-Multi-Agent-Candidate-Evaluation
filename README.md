@@ -37,6 +37,27 @@ Before deliberation begins, four independent agents assess the candidate dossier
 - **Backend**: Express.js with Vite middleware.
 - **AI / LLM Orchestration**: `@google/genai` TypeScript SDK (powered by `gemini-3.7-flash` with automatic fallback to `gemini-flash-latest`).
 - **Audio Engine**: Web Speech API (`window.speechSynthesis`) with voice mapping and rate control.
+- **Testing & Quality Assurance**: Vitest, React Testing Library, JSDOM.
+
+---
+
+## Automated Testing & Quality Audit
+
+The codebase includes an end-to-end automated test suite covering unit logic, component rendering, accessibility compliance, evidence mapping, and security boundaries:
+
+```bash
+# Run test suite
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+### Test Suite Coverage
+- `src/__tests__/evidenceStore.test.ts`: Validates unique citation IDs (`E001`, `E002`), cross-document contradiction extraction, and registrar transcript correlation.
+- `src/__tests__/adjudication.test.ts`: Verifies non-averaging consensus synthesis, 4-persona assessment generation, position calibration, and rubric score enforcement (1–5 scale).
+- `src/__tests__/components.test.tsx`: Validates UI component rendering, WAI-ARIA tab navigation (`role="tablist"`, `role="tab"`), dialog focus management, and button accessibility.
+- `src/__tests__/security.test.ts`: Ensures rigorous input sanitization, prompt injection resistance, score bounds clamping (`[0, 100]` / `[1, 5]`), and schema conformity.
 
 ---
 

@@ -24,6 +24,16 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const [transcriptText, setTranscriptText] = useState('');
   const [jobDescriptionText, setJobDescriptionText] = useState('');
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'resume' | 'transcript' | 'jd') => {
@@ -132,6 +142,9 @@ REQUIREMENTS:
   return (
     <div
       id="upload-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upload-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121212]/60 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
@@ -143,11 +156,11 @@ REQUIREMENTS:
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#121212]/15">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] text-[#D94F33]">
+            <div className="p-2.5 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] text-[#D94F33]" aria-hidden="true">
               <Upload className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-serif-editorial font-bold text-[#121212]">
+              <h2 id="upload-modal-title" className="text-xl font-serif-editorial font-bold text-[#121212]">
                 Custom Candidate Ingestion
               </h2>
               <p className="text-xs text-[#57534E] font-serif-editorial italic mt-0.5">
@@ -158,10 +171,11 @@ REQUIREMENTS:
           <button
             id="btn-close-upload-modal"
             type="button"
+            aria-label="Close custom candidate upload dialog"
             onClick={onClose}
-            className="text-[#57534E] hover:text-[#121212] p-1.5 rounded-xs hover:bg-[#F4F1EA] transition-colors cursor-pointer"
+            className="text-[#57534E] hover:text-[#121212] p-1.5 rounded-xs hover:bg-[#F4F1EA] transition-colors cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33]"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 

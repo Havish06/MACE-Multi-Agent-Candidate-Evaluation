@@ -126,74 +126,93 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="flex space-x-1 sm:space-x-4 pt-1 overflow-x-auto no-scrollbar">
+        <nav
+          role="tablist"
+          aria-label="Evaluation Navigation"
+          className="flex space-x-1 sm:space-x-4 pt-1 overflow-x-auto no-scrollbar"
+        >
           <button
             id="nav-tab-dossier"
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'dossier'}
+            aria-controls="tabpanel-dossier"
             onClick={() => setActiveTab('dossier')}
-            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
               activeTab === 'dossier'
-                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60'
+                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60 font-black'
                 : 'border-transparent text-[#57534E] hover:text-[#121212] hover:bg-[#F4F1EA]/40'
             }`}
           >
-            <Scale className="w-4 h-4 text-[#D94F33]" />
+            <Scale className="w-4 h-4 text-[#D94F33]" aria-hidden="true" />
             <span>Adjudication Dossier</span>
           </button>
 
           <button
             id="nav-tab-personas"
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'personas'}
+            aria-controls="tabpanel-personas"
             onClick={() => setActiveTab('personas')}
-            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
               activeTab === 'personas'
-                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60'
+                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60 font-black'
                 : 'border-transparent text-[#57534E] hover:text-[#121212] hover:bg-[#F4F1EA]/40'
             }`}
           >
-            <Users className="w-4 h-4 text-[#2D5A3F]" />
+            <Users className="w-4 h-4 text-[#2D5A3F]" aria-hidden="true" />
             <span>Independent 4-Agent Panel</span>
           </button>
 
           <button
             id="nav-tab-debate"
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'debate'}
+            aria-controls="tabpanel-debate"
             onClick={() => setActiveTab('debate')}
-            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
               activeTab === 'debate'
-                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60'
+                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60 font-black'
                 : 'border-transparent text-[#57534E] hover:text-[#121212] hover:bg-[#F4F1EA]/40'
             }`}
           >
-            <MessageSquareQuote className="w-4 h-4 text-[#C2781D]" />
+            <MessageSquareQuote className="w-4 h-4 text-[#C2781D]" aria-hidden="true" />
             <span>Live Debate Arena & Voice</span>
           </button>
 
           <button
             id="nav-tab-evidence"
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'evidence'}
+            aria-controls="tabpanel-evidence"
             onClick={() => setActiveTab('evidence')}
-            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
               activeTab === 'evidence'
-                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60'
+                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60 font-black'
                 : 'border-transparent text-[#57534E] hover:text-[#121212] hover:bg-[#F4F1EA]/40'
             }`}
           >
-            <FileCheck className="w-4 h-4 text-[#121212]" />
+            <FileCheck className="w-4 h-4 text-[#121212]" aria-hidden="true" />
             <span>Evidence Store & Contradictions</span>
           </button>
 
           <button
             id="nav-tab-profile"
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'profile'}
+            aria-controls="tabpanel-profile"
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
               activeTab === 'profile'
-                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60'
+                ? 'border-[#D94F33] text-[#121212] bg-[#F4F1EA]/60 font-black'
                 : 'border-transparent text-[#57534E] hover:text-[#121212] hover:bg-[#F4F1EA]/40'
             }`}
           >
-            <Layers className="w-4 h-4 text-[#57534E]" />
+            <Layers className="w-4 h-4 text-[#57534E]" aria-hidden="true" />
             <span>Candidate Profile & Transcript</span>
           </button>
         </nav>

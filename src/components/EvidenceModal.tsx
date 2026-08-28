@@ -17,6 +17,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({
   onClose,
   onSelectEvidence,
 }) => {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (evidenceId) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [evidenceId, onClose]);
+
   if (!evidenceId) return null;
 
   const item = evidenceStore.find(
@@ -32,6 +42,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({
   return (
     <div
       id="evidence-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="evidence-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121212]/70 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
@@ -42,14 +55,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({
       >
         <button
           id="btn-close-evidence-modal"
+          type="button"
+          aria-label="Close evidence citation modal"
           onClick={onClose}
-          className="absolute top-4 right-4 text-[#121212]/50 hover:text-[#121212] p-1.5 rounded hover:bg-[#F4F1EA] transition-colors"
+          className="absolute top-4 right-4 text-[#121212]/50 hover:text-[#121212] p-1.5 rounded hover:bg-[#F4F1EA] transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#D94F33]"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
         <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[#121212]/10">
-          <div className="p-2.5 rounded bg-[#F4F1EA] border border-[#121212]/10 text-[#D94F33]">
+          <div className="p-2.5 rounded bg-[#F4F1EA] border border-[#121212]/10 text-[#D94F33]" aria-hidden="true">
             <FileText className="w-5 h-5" />
           </div>
           <div>
@@ -61,7 +76,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({
                 {item?.type?.replace('_', ' ') || 'Document Record'}
               </span>
             </div>
-            <h3 className="text-base font-serif-editorial font-bold text-[#121212] mt-0.5">
+            <h3 id="evidence-modal-title" className="text-base font-serif-editorial font-bold text-[#121212] mt-0.5">
               Verified Evidence Record & Citation
             </h3>
           </div>
