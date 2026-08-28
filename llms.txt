@@ -1,17 +1,35 @@
 # MACE - Multi-Agent Committee Evaluator
 
-> MACE is an explainable, multi-agent AI hiring evaluation and adversarial adjudication platform powered by Google Gemini 3.7 Flash. It coordinates four independent specialist agents (Technical Architect, Culture & Behavioral, Hiring Manager Lead, and Risk Auditor) through multi-turn dialectical debate, evidence verification, and non-averaging adjudication.
+> MACE is an explainable, multi-agent AI hiring evaluation and adversarial adjudication platform powered by Google Gemini 3.7 Flash. It orchestrates four independent specialist agents (Technical Architect, Culture & Behavioral Lead, Hiring Manager Lead, and Risk Auditor) through multi-turn dialectical debate, primary document cross-examination, and evidence-weighted adjudication.
 
-## Core Capabilities
+## Overview & Architecture
 
-- [Adjudication Dossier](/): Evidence-weighted synthesis of candidate qualifications, hiring recommendations, confidence scores, and calibrated risk assessments.
-- [Independent Agent Panel](/): Isolated evaluations by Technical Architect, Culture Lead, Hiring Manager Lead, and Risk Skeptic without groupthink bias.
-- [Voice Debate Arena](/): Turn-based adversarial dialectic where agents challenge claims, defend hypotheses, and calibrate positions using audio synthesis.
-- [Evidence Repository](/): Ground-truth citation index linking claims directly to verified lines and snippets in resumes and official transcripts.
-- [Contradiction Analysis](/): Cross-document verification highlighting discrepancies between self-reported resume claims and official academic records.
+MACE replaces single-prompt heuristic screening with an adversarial hiring committee architecture modeled after high-stakes executive hiring loops. Rather than calculating arbitrary score averages, MACE implements a 5-stage evaluation pipeline:
 
-## Architecture & Integration
+1. **Document Grounding & Evidence Extraction**: Ingests resumes, job descriptions, and official academic transcripts to construct an atomic, tamper-evident citation store (`E001`, `E002`, etc.) with strict line-level indices.
+2. **Isolated Specialist Evaluation**: Four distinct AI personas review the candidate independently without seeing peer evaluations, preventing groupthink and anchoring bias.
+3. **Disagreement Detection & Dialectical Variance**: Computes statistical variance across persona rubric scores and identifies core philosophical conflicts (e.g., raw technical pedigree vs. collaboration risk).
+4. **Multi-Voice Adversarial Debate**: Agents engage in a multi-turn turn-based debate, cross-examining each other's claims using primary document citations and calibrated rebuttals.
+5. **Evidence-Weighted Adjudication**: A senior adjudicator weighs verified facts over rhetorical assertions to render a final verdict (`Strong Hire`, `Lean Hire`, `Lean No Hire`, `Strong No Hire`) accompanied by confidence bounds and risk mitigation conditions.
 
-- [Gemini 3.7 Flash Backend](/api/health): Server-side LLM processing pipeline for document extraction, agent reasoning, and multi-turn debate simulation.
-- [Firebase Persistence](/): Secure Firestore database integration with role-based security rules and OAuth authentication.
-- [Accessibility & Keyboard Navigation](/): WCAG AA compliant interface with complete keyboard shortcut navigation and screen reader support.
+## Evaluator Persona Specifications
+
+- **Technical Architect (Dr. Aris Thorne)**: Focuses on distributed systems architecture, algorithmic complexity, CS fundamentals, database scalability, and engineering trade-offs.
+- **Culture & Behavioral Lead (Elena Vance)**: Evaluates psychological safety, humility, cross-functional empathy, proactive communication, mentorship, and team dynamics.
+- **Hiring Manager Lead (Marcus Sterling)**: Focuses on commercial execution, shipping velocity, product delivery milestones, business alignment, and technical debt pragmatism.
+- **Risk & Integrity Auditor (Judge Evelyn Ross)**: Cross-examines self-reported claims against transcripts, audits job tenure gaps, flags credential inflation, and evaluates integrity risks.
+
+## Key Capabilities & Endpoints
+
+- [Adjudication Dossier](/): Executive synthesis with confidence ratings, disagreement matrices, rubric breakdowns, and conditioned offer terms.
+- [Persona Panel View](/): Detailed scoring, strengths, flags, and direct interview questions from each specialist agent.
+- [Voice Debate Arena](/): Turn-based speech debate with multi-voice audio playback, speed control, and live argument transcripts.
+- [Evidence & Citation Explorer](/): Searchable ground-truth index with direct document excerpts, line numbers, and verification status.
+- [Interactive Evaluation Studio](/): Real-time analysis of custom resumes, job descriptions, and academic transcripts via Gemini 3.7 Flash.
+- [Full Technical Specification](/llms-full.txt): Complete prompt schemas, scoring formulas, and persona instructions.
+
+## Benchmark Scenarios
+
+- **Alex Rivera (Machine Learning & Backend Engineer)**: High technical aptitude with an academic GPA discrepancy between resume (3.80 claimed) and official transcript (3.42 actual).
+- **Sarah Chen (Full Stack Software Engineer)**: Balanced profile with exceptional collaboration signals, strong React/Node mastery, and solid execution discipline.
+- **David Park (Distributed Systems Specialist)**: Deep systems engineering expertise with contentious teamwork feedback and high ownership friction.

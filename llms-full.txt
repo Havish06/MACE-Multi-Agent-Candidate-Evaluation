@@ -1,0 +1,52 @@
+# MACE: Full Technical Specification & LLM Reference Guide
+
+## What is MACE?
+MACE (Multi-Agent Committee Evaluator) is an enterprise-grade, multi-agent AI hiring adjudication platform. It replaces opaque single-prompt LLM scoring with an adversarial multi-agent committee that debates candidate qualifications, validates evidence against official primary records, and synthesizes an explainable, non-averaged hiring verdict.
+
+## Architectural Principles
+
+### 1. Isolated Evaluation Pass (Zero-Anchor Guarantee)
+In Stage 1, all four evaluator personas operate in isolated context windows. No agent has visibility into other agents' rubric scores, eliminating the cascade bias and anchoring effects common in single-model multi-role evaluations.
+
+### 2. Disagreement Detection Formula
+Variance $V$ across rubric dimensions is computed as:
+$$V_d = \frac{1}{N} \sum_{i=1}^{N} (s_{i,d} - \bar{s}_d)^2$$
+Where $s_{i,d}$ is the score of agent $i$ on dimension $d$, and $\bar{s}_d$ is the dimension mean. Any dimension with $V_d \ge 1.5$ is flagged as an active contention topic for the Stage 3 adversarial debate.
+
+### 3. Non-Averaging Evidence Adjudication
+Conventional hiring algorithms average scores (e.g., $(4 + 1 + 4 + 3) / 4 = 3.0$), which dilutes critical disqualifying signals. MACE evaluates the empirical evidence cited:
+- **Verified Primary Documents**: Given highest evidentiary weight ($W=1.0$).
+- **Self-Reported Unsubstantiated Claims**: Given discount factor ($W=0.35$).
+- **Factual Contradictions**: Triggers explicit risk penalty thresholding in the final recommendation.
+
+## Evaluator Persona Prompts & Roles
+
+### Technical Architect
+- **Domain**: System design, concurrency, memory management, algorithmic complexity, distributed systems.
+- **Evaluation Criteria**: Architectural depth, code scalability, engineering trade-off pragmatism.
+- **Tone**: Analytical, rigorous, technically uncompromising.
+
+### Culture & Behavioral Lead
+- **Domain**: Collaboration, team psychological safety, conflict resolution, feedback receptivity, mentorship.
+- **Evaluation Criteria**: Emotional intelligence, cross-functional communication, organizational contribution.
+- **Tone**: Empathic, discerning, culture-protective.
+
+### Hiring Manager Lead
+- **Domain**: Delivery velocity, business impact, milestone ownership, commercial prioritization.
+- **Evaluation Criteria**: Track record of shipping, alignment with role KPIs, operational autonomy.
+- **Tone**: Results-oriented, pragmatic, decisive.
+
+### Risk & Integrity Auditor
+- **Domain**: Factual consistency, credential validation, tenure verification, resume discrepancy auditing.
+- **Evaluation Criteria**: Absolute truthfulness, cross-document verification, risk exposure.
+- **Tone**: Skeptical, forensic, detail-focused.
+
+## API Endpoints Reference
+
+- `GET /api/health`: System health status and Gemini 3.7 configuration checks.
+- `GET /api/benchmark-candidates`: Pre-calibrated benchmark candidate dossiers.
+- `POST /api/candidates/extract`: Document ingestion, profile extraction, and contradiction detection.
+- `POST /api/candidates/evaluate-personas`: Parallel isolated persona evaluation pass.
+- `POST /api/candidates/debate`: Multi-turn dialectical debate generation.
+- `POST /api/candidates/adjudicate`: Evidence-weighted final verdict synthesis.
+- `POST /api/tts`: Multi-voice speech synthesis for audio debate playback.

@@ -13,6 +13,7 @@ import { UploadModal } from './components/UploadModal';
 import { PipelineProgressModal } from './components/PipelineProgressModal';
 import { AuthModal } from './components/AuthModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { KnowledgeReference } from './components/KnowledgeReference';
 import { SAMPLE_CANDIDATES } from './data/sampleCandidates';
 import { DEFAULT_SESSIONS } from './data/defaultSessions';
 import { useAuth } from './lib/AuthContext';
@@ -512,6 +513,9 @@ export default function App() {
               />
             </section>
           )}
+
+          {/* System Knowledge & SEO/LLM Reference Hub */}
+          <KnowledgeReference />
         </div>
       </main>
 

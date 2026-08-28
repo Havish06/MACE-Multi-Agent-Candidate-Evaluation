@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { SAMPLE_CANDIDATES } from "./src/data/sampleCandidates";
 import {
@@ -19,10 +20,35 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+  // AI & Crawler Guidance Endpoints (llms.txt, llms-full.txt, robots.txt)
+  app.get("/llms.txt", (_req, res) => {
+    const filePath = path.join(process.cwd(), "public", "llms.txt");
+    if (fs.existsSync(filePath)) {
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      return res.sendFile(filePath);
+    }
+    res.type("text/plain").send("# MACE - Multi-Agent Committee Evaluator\n\n> Explainable multi-agent AI hiring evaluation platform.");
+  });
+
+  app.get("/llms-full.txt", (_req, res) => {
+    const filePath = path.join(process.cwd(), "public", "llms-full.txt");
+    if (fs.existsSync(filePath)) {
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      return res.sendFile(filePath);
+    }
+    res.type("text/plain").send("# MACE - Full Specification\n\n> Complete technical and architectural specifications.");
+  });
+
+  app.get("/robots.txt", (_req, res) => {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.send("User-agent: *\nAllow: /\n\nSitemap: /sitemap.xml\n");
+  });
+
   // API Routes
   app.get("/api/health", (_req, res) => {
     res.json({
       status: "ok",
+      app: "MACE",
       geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
       timestamp: new Date().toISOString(),
     });

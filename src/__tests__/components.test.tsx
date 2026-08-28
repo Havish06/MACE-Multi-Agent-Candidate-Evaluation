@@ -10,7 +10,9 @@ import { DebateRoom } from '../components/DebateRoom';
 import { EvidenceExplorer } from '../components/EvidenceExplorer';
 import { CandidateProfileView } from '../components/CandidateProfileView';
 import { FinalReportView } from '../components/FinalReportView';
+import { KnowledgeReference } from '../components/KnowledgeReference';
 import { AuthProvider } from '../lib/AuthContext';
+import { fireEvent } from '@testing-library/react';
 
 describe('UI Components & Accessibility Verification', () => {
   const mockCandidate = SAMPLE_CANDIDATES[0];
@@ -124,5 +126,17 @@ describe('UI Components & Accessibility Verification', () => {
 
     expect(screen.getByText(/Official Verdict/i)).toBeInTheDocument();
     expect(screen.getByText(/Executive Adjudication Summary/i)).toBeInTheDocument();
+  });
+
+  it('renders KnowledgeReference system FAQ and expands items on interaction', () => {
+    render(<KnowledgeReference />);
+
+    expect(screen.getByText(/MACE System Architecture & Knowledge Reference/i)).toBeInTheDocument();
+
+    const toggleBtn = screen.getByRole('button', { name: /Expand Reference/i });
+    fireEvent.click(toggleBtn);
+
+    expect(screen.getByText(/Direct Definition & Abstract/i)).toBeInTheDocument();
+    expect(screen.getByText(/What is MACE \(Multi-Agent Committee Evaluator\)\?/i)).toBeInTheDocument();
   });
 });
