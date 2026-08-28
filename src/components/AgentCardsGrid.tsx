@@ -185,10 +185,10 @@ export const AgentCardsGrid: React.FC<AgentCardsGridProps> = ({
                 <div>
                   <span className="text-[10px] uppercase tracking-[0.16em] font-bold text-[#2D5A3F] flex items-center gap-1 mb-2">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Evidence-Backed Strengths ({assessment.strengths.length})</span>
+                    <span>Evidence-Backed Strengths ({(assessment.strengths || []).length})</span>
                   </span>
                   <div className="space-y-1.5">
-                    {assessment.strengths.length === 0 ? (
+                    {(!assessment.strengths || assessment.strengths.length === 0) ? (
                       <p className="text-[#78716C] italic font-serif-editorial">No primary strengths cited.</p>
                     ) : (
                       assessment.strengths.map((st, idx) => (
@@ -198,7 +198,7 @@ export const AgentCardsGrid: React.FC<AgentCardsGridProps> = ({
                         >
                           <span className="text-[#121212] leading-tight font-medium">{st.statement}</span>
                           <div className="flex flex-wrap gap-1 shrink-0">
-                            {st.evidenceIds.map((eid) => (
+                            {(st.evidenceIds || []).map((eid) => (
                               <EvidenceBadge
                                 key={eid}
                                 id={eid}
@@ -217,10 +217,10 @@ export const AgentCardsGrid: React.FC<AgentCardsGridProps> = ({
                 <div>
                   <span className="text-[10px] uppercase tracking-[0.16em] font-bold text-[#A82A2A] flex items-center gap-1 mb-2">
                     <AlertOctagon className="w-3.5 h-3.5" />
-                    <span>Identified Risks & Flagged Evidence ({assessment.concerns.length})</span>
+                    <span>Identified Risks & Flagged Evidence ({(assessment.concerns || []).length})</span>
                   </span>
                   <div className="space-y-1.5">
-                    {assessment.concerns.length === 0 ? (
+                    {(!assessment.concerns || assessment.concerns.length === 0) ? (
                       <p className="text-[#78716C] italic font-serif-editorial">No significant concerns raised.</p>
                     ) : (
                       assessment.concerns.map((cn, idx) => (
@@ -230,7 +230,7 @@ export const AgentCardsGrid: React.FC<AgentCardsGridProps> = ({
                         >
                           <span className="text-[#121212] leading-tight font-medium">{cn.statement}</span>
                           <div className="flex flex-wrap gap-1 shrink-0">
-                            {cn.evidenceIds.map((eid) => (
+                            {(cn.evidenceIds || []).map((eid) => (
                               <EvidenceBadge
                                 key={eid}
                                 id={eid}
@@ -260,21 +260,39 @@ export const AgentCardsGrid: React.FC<AgentCardsGridProps> = ({
               </div>
 
               {/* Direct Evidence Citations Footer */}
-              <div className="p-3 bg-[#FDFCFB] border-t border-[#121212]/10 flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-[10px] uppercase font-bold tracking-[0.14em] text-[#57534E]">
-                  Citations:
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {assessment.citedEvidenceIds.map((eid) => (
-                    <EvidenceBadge
-                      key={eid}
-                      id={eid}
-                      evidenceStore={evidenceStore}
-                      onSelectEvidence={onSelectEvidence}
-                    />
-                  ))}
-                </div>
-              </div>
+              {(() => {
+                const allCitedIds = Array.from(
+                  new Set([
+                    ...(assessment.supportedClaims || []),
+                    ...(assessment.unsupportedClaims || []),
+                    ...(assessment.contradictedClaims || []),
+                    ...(assessment.strengths?.flatMap((s) => s.evidenceIds || []) || []),
+                    ...(assessment.concerns?.flatMap((c) => c.evidenceIds || []) || []),
+                  ])
+                ).filter(Boolean);
+
+                return (
+                  <div className="p-3 bg-[#FDFCFB] border-t border-[#121212]/10 flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-[10px] uppercase font-bold tracking-[0.14em] text-[#57534E]">
+                      Citations ({allCitedIds.length}):
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {allCitedIds.length === 0 ? (
+                        <span className="text-[11px] text-[#78716C] italic font-serif-editorial">No explicit evidence IDs cited</span>
+                      ) : (
+                        allCitedIds.map((eid) => (
+                          <EvidenceBadge
+                            key={eid}
+                            id={eid}
+                            evidenceStore={evidenceStore}
+                            onSelectEvidence={onSelectEvidence}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })}

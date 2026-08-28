@@ -286,14 +286,14 @@ export const FinalReportView: React.FC<FinalReportViewProps> = ({
           </div>
 
           <div className="space-y-2">
-            {decision.strengths.map((st, idx) => (
+            {(decision.strengths || []).map((st, idx) => (
               <div
                 key={idx}
                 className="p-3.5 rounded-xs bg-[#E9F2EC]/50 border border-[#B4D5C2]/60 flex items-start justify-between gap-3 text-xs"
               >
                 <span className="text-[#121212] leading-relaxed font-medium">{st.statement}</span>
                 <div className="flex flex-wrap gap-1 shrink-0">
-                  {st.evidenceIds.map((eid) => (
+                  {(st.evidenceIds || []).map((eid) => (
                     <EvidenceBadge
                       key={eid}
                       id={eid}
@@ -312,19 +312,19 @@ export const FinalReportView: React.FC<FinalReportViewProps> = ({
           <div className="flex items-center justify-between pb-2 border-b border-[#121212]/10">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#A82A2A] flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" />
-              <span>Identified Concerns & Flagged Risks ({decision.concerns.length})</span>
+              <span>Identified Concerns & Flagged Risks ({(decision.concerns || []).length})</span>
             </span>
           </div>
 
           <div className="space-y-2">
-            {decision.concerns.map((cn, idx) => (
+            {(decision.concerns || []).map((cn, idx) => (
               <div
                 key={idx}
                 className="p-3.5 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] flex items-start justify-between gap-3 text-xs"
               >
                 <span className="text-[#121212] leading-relaxed font-medium">{cn.statement}</span>
                 <div className="flex flex-wrap gap-1 shrink-0">
-                  {cn.evidenceIds.map((eid) => (
+                  {(cn.evidenceIds || []).map((eid) => (
                     <EvidenceBadge
                       key={eid}
                       id={eid}
@@ -351,7 +351,7 @@ export const FinalReportView: React.FC<FinalReportViewProps> = ({
           </div>
 
           <div className="space-y-3">
-            {decision.resolvedDisagreements.map((res, idx) => (
+            {(decision.resolvedDisagreements || []).map((res, idx) => (
               <div key={idx} className="p-3.5 rounded-xs bg-[#F4F1EA] border border-[#121212]/10 text-xs space-y-1.5">
                 <div className="font-bold text-[#121212] font-serif-editorial text-sm">{res.disputeTopic}</div>
                 <p className="text-[#57534E] text-xs leading-relaxed">{res.resolution}</p>
@@ -373,7 +373,7 @@ export const FinalReportView: React.FC<FinalReportViewProps> = ({
           </div>
 
           <div className="space-y-3">
-            {decision.unresolvedDisagreements.map((unres, idx) => (
+            {(decision.unresolvedDisagreements || []).map((unres, idx) => (
               <div key={idx} className="p-3.5 rounded-xs bg-[#FAF0E6] border border-[#E5CFB8] text-xs space-y-1.5">
                 <div className="font-bold text-[#8C510A] font-serif-editorial text-sm">{unres.disputeTopic}</div>
                 <p className="text-[#57534E] text-xs leading-relaxed">{unres.whyUnresolved}</p>

@@ -58,7 +58,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
 
           {/* Education Degrees */}
           <div className="space-y-2">
-            {profile.education.map((edu, idx) => (
+            {(profile.education || []).map((edu, idx) => (
               <div
                 key={idx}
                 className="p-3.5 rounded-xs bg-[#FDFCFB] border border-[#121212]/15 flex items-center justify-between text-xs"
@@ -122,7 +122,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
           </div>
 
           <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-            {profile.skills.map((sk, idx) => (
+            {(profile.skills || []).map((sk, idx) => (
               <div
                 key={idx}
                 className="p-3 rounded-xs bg-[#FDFCFB] border border-[#121212]/15 flex items-center justify-between text-xs"
@@ -148,7 +148,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-1 shrink-0">
-                  {sk.evidenceIds.map((eid) => (
+                  {(sk.evidenceIds || []).map((eid) => (
                     <EvidenceBadge
                       key={eid}
                       id={eid}
@@ -173,7 +173,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
           </h3>
 
           <div className="space-y-3">
-            {profile.experience.map((exp, idx) => (
+            {(profile.experience || []).map((exp, idx) => (
               <div key={idx} className="p-4 rounded-xs bg-[#FDFCFB] border border-[#121212]/15 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <div>
@@ -181,7 +181,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
                     <span className="text-[#57534E] block font-serif-editorial italic text-xs mt-0.5">{exp.company} • {exp.duration}</span>
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {exp.evidenceIds.map((eid) => (
+                    {(exp.evidenceIds || []).map((eid) => (
                       <EvidenceBadge
                         key={eid}
                         id={eid}
@@ -193,7 +193,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
                 </div>
 
                 <ul className="list-disc list-inside space-y-1 text-[#292524] text-[11px] leading-relaxed">
-                  {exp.responsibilities.map((r, rIdx) => (
+                  {(exp.responsibilities || []).map((r, rIdx) => (
                     <li key={rIdx}>{r}</li>
                   ))}
                 </ul>
@@ -210,12 +210,12 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
           </h3>
 
           <div className="space-y-3">
-            {profile.projects.map((proj, idx) => (
+            {(profile.projects || []).map((proj, idx) => (
               <div key={idx} className="p-4 rounded-xs bg-[#FDFCFB] border border-[#121212]/15 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-serif-editorial font-bold text-sm text-[#121212]">{proj.title}</span>
                   <div className="flex flex-wrap gap-1">
-                    {proj.evidenceIds.map((eid) => (
+                    {(proj.evidenceIds || []).map((eid) => (
                       <EvidenceBadge
                         key={eid}
                         id={eid}
@@ -227,7 +227,7 @@ export const CandidateProfileView: React.FC<CandidateProfileViewProps> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                  {proj.technologies.map((t, tIdx) => (
+                  {(proj.technologies || []).map((t, tIdx) => (
                     <span key={tIdx} className="px-1.5 py-0.2 rounded-xs bg-[#EFECE7] text-[#121212] text-[10px] font-mono border border-[#121212]/10">
                       {t}
                     </span>

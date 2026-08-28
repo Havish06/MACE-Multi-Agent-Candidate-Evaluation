@@ -18,25 +18,28 @@ interface EvidenceExplorerProps {
 }
 
 export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
-  evidenceStore,
-  contradictions,
+  evidenceStore = [],
+  contradictions = [],
   onSelectEvidence,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
-  const filteredEvidence = evidenceStore.filter((e) => {
+  const safeStore = evidenceStore || [];
+  const safeContradictions = contradictions || [];
+
+  const filteredEvidence = safeStore.filter((e) => {
     const matchesSearch =
-      e.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.source.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.pageOrSection.toLowerCase().includes(searchQuery.toLowerCase());
+      (e.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (e.text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (e.source || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (e.pageOrSection || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
 
     if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'resume') return e.source.includes('resume');
-    if (selectedFilter === 'transcript') return e.source.includes('transcript');
+    if (selectedFilter === 'resume') return (e.source || '').toLowerCase().includes('resume');
+    if (selectedFilter === 'transcript') return (e.source || '').toLowerCase().includes('transcript');
     if (selectedFilter === 'grades') return e.type === 'grade' || e.type === 'education_fact';
     if (selectedFilter === 'projects') return e.type === 'project' || e.type === 'technical_claim';
 
@@ -62,18 +65,18 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Contradictions & Discrepancy Analyzer */}
-      {contradictions && contradictions.length > 0 && (
+      {safeContradictions && safeContradictions.length > 0 && (
         <div className="p-5 sm:p-6 rounded-xs bg-[#FFFFFF] border border-[#121212]/15 space-y-3.5 shadow-2xs">
           <div className="flex items-center justify-between pb-2 border-b border-[#121212]/10">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#A82A2A] flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4 text-[#A82A2A]" />
-              <span>Flagged Contradictions & Resume-Transcript Discrepancies ({contradictions.length})</span>
+              <span>Flagged Contradictions & Resume-Transcript Discrepancies ({safeContradictions.length})</span>
             </span>
             <span className="text-xs text-[#57534E] font-serif-editorial italic">Cross-Document Verification</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {contradictions.map((c) => (
+            {safeContradictions.map((c) => (
               <div
                 key={c.id}
                 className="p-4 sm:p-5 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] flex flex-col justify-between text-xs space-y-3 shadow-2xs"
