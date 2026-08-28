@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile with role-based access for hiring evaluations",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["evaluator", "admin", "auditor"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "email"]
+    },
+    "EvaluationSession": {
+      "title": "Evaluation Session",
+      "description": "Persisted evaluation session for candidate hiring deliberation",
+      "type": "object",
+      "properties": {
+        "candidateId": { "type": "string" },
+        "candidateName": { "type": "string" },
+        "targetRole": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "verdict": { "type": "string" },
+        "confidence": { "type": "number" },
+        "data": { "type": "object" }
+      },
+      "required": ["candidateId", "candidateName", "ownerId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "entity": "UserProfile",
+      "description": "User profile records accessible by the authenticated user"
+    },
+    "/evaluations/{evaluationId}": {
+      "entity": "EvaluationSession",
+      "description": "Candidate evaluation sessions created and managed by authenticated evaluators"
+    }
+  }
+}

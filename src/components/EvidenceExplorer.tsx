@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Search,
   FileCheck,
@@ -28,48 +28,57 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
   const safeStore = evidenceStore || [];
   const safeContradictions = contradictions || [];
 
-  const filteredEvidence = safeStore.filter((e) => {
-    const matchesSearch =
-      (e.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.source || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.pageOrSection || '').toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredEvidence = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return safeStore.filter((e) => {
+      const matchesSearch =
+        !query ||
+        (e.id || '').toLowerCase().includes(query) ||
+        (e.text || '').toLowerCase().includes(query) ||
+        (e.source || '').toLowerCase().includes(query) ||
+        (e.pageOrSection || '').toLowerCase().includes(query);
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'resume') return (e.source || '').toLowerCase().includes('resume');
-    if (selectedFilter === 'transcript') return (e.source || '').toLowerCase().includes('transcript');
-    if (selectedFilter === 'grades') return e.type === 'grade' || e.type === 'education_fact';
-    if (selectedFilter === 'projects') return e.type === 'project' || e.type === 'technical_claim';
+      if (selectedFilter === 'all') return true;
+      if (selectedFilter === 'resume') return (e.source || '').toLowerCase().includes('resume');
+      if (selectedFilter === 'transcript') return (e.source || '').toLowerCase().includes('transcript');
+      if (selectedFilter === 'grades') return e.type === 'grade' || e.type === 'education_fact';
+      if (selectedFilter === 'projects') return e.type === 'project' || e.type === 'technical_claim';
 
-    return true;
-  });
+      return true;
+    });
+  }, [safeStore, searchQuery, selectedFilter]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'grade':
       case 'education_fact':
-        return <GraduationCap className="w-3.5 h-3.5 text-[#2D5A3F]" />;
+        return <GraduationCap className="w-3.5 h-3.5 text-[#2D5A3F]" aria-hidden="true" />;
       case 'project':
       case 'technical_claim':
-        return <Code2 className="w-3.5 h-3.5 text-[#D94F33]" />;
+        return <Code2 className="w-3.5 h-3.5 text-[#D94F33]" aria-hidden="true" />;
       case 'experience':
       case 'behavioral':
-        return <Briefcase className="w-3.5 h-3.5 text-[#C2781D]" />;
+        return <Briefcase className="w-3.5 h-3.5 text-[#C2781D]" aria-hidden="true" />;
       default:
-        return <FileCheck className="w-3.5 h-3.5 text-[#121212]" />;
+        return <FileCheck className="w-3.5 h-3.5 text-[#121212]" aria-hidden="true" />;
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300" role="region" aria-label="Evidence Repository & Verification Explorer">
+      {/* Search results announcement for screen readers */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        Showing {filteredEvidence.length} citations out of {safeStore.length}
+      </div>
+
       {/* Contradictions & Discrepancy Analyzer */}
       {safeContradictions && safeContradictions.length > 0 && (
         <div className="p-5 sm:p-6 rounded-xs bg-[#FFFFFF] border border-[#121212]/15 space-y-3.5 shadow-2xs">
           <div className="flex items-center justify-between pb-2 border-b border-[#121212]/10">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#A82A2A] flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4 text-[#A82A2A]" />
+              <AlertTriangle className="w-4 h-4 text-[#A82A2A]" aria-hidden="true" />
               <span>Flagged Contradictions & Resume-Transcript Discrepancies ({safeContradictions.length})</span>
             </span>
             <span className="text-xs text-[#57534E] font-serif-editorial italic">Cross-Document Verification</span>
@@ -131,8 +140,8 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-[#121212]/10">
           <div>
             <h3 className="text-xs font-bold text-[#121212] uppercase tracking-[0.16em] flex items-center gap-2">
-              <FileCheck className="w-4 h-4 text-[#D94F33]" />
-              <span>Evidence Repository Store ({evidenceStore.length} citations)</span>
+              <FileCheck className="w-4 h-4 text-[#D94F33]" aria-hidden="true" />
+              <span>Evidence Repository Store ({filteredEvidence.length}/{evidenceStore.length} citations)</span>
             </h3>
             <p className="text-xs text-[#57534E] font-serif-editorial italic mt-0.5">
               Verified ground-truth snippets extracted from candidate primary documents
@@ -141,19 +150,21 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
 
           {/* Search Bar */}
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-[#57534E] absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-[#57534E] absolute left-3 top-2.5" aria-hidden="true" />
             <input
+              id="evidence-search-input"
               type="text"
-              placeholder="Search evidence or ID..."
+              placeholder="Search evidence or ID... (Press /)"
               value={searchQuery}
+              aria-label="Search evidence citations by keyword or ID"
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#FDFCFB] border border-[#121212]/20 rounded-xs pl-9 pr-3 py-1.5 text-xs text-[#121212] placeholder-[#57534E] focus:outline-hidden focus:border-[#121212]"
+              className="w-full bg-[#FDFCFB] border border-[#121212]/20 rounded-xs pl-9 pr-3 py-1.5 text-xs text-[#121212] placeholder-[#57534E] focus-visible:ring-2 focus-visible:ring-[#D94F33] focus:outline-hidden"
             />
           </div>
         </div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs" role="group" aria-label="Evidence Filters">
           <span className="text-[10px] uppercase font-bold tracking-wider text-[#57534E] mr-1">Filter By:</span>
           {[
             { key: 'all', label: 'All Evidence' },
@@ -165,8 +176,9 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
             <button
               key={f.key}
               type="button"
+              aria-pressed={selectedFilter === f.key}
               onClick={() => setSelectedFilter(f.key)}
-              className={`px-3 py-1 text-xs font-serif-editorial font-medium rounded-xs transition-colors cursor-pointer ${
+              className={`px-3 py-1 text-xs font-serif-editorial font-medium rounded-xs transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
                 selectedFilter === f.key
                   ? 'bg-[#121212] text-[#FDFCFB] font-bold'
                   : 'bg-[#FDFCFB] text-[#57534E] hover:text-[#121212] border border-[#121212]/15'
@@ -182,8 +194,17 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
           {filteredEvidence.map((e) => (
             <div
               key={e.id}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                  ev.preventDefault();
+                  onSelectEvidence(e.id);
+                }
+              }}
               onClick={() => onSelectEvidence(e.id)}
-              className="p-4 rounded-xs bg-[#FDFCFB] hover:bg-[#FAF0E6]/30 border border-[#121212]/15 hover:border-[#D94F33] transition-all cursor-pointer flex flex-col justify-between gap-2.5 text-xs shadow-2xs"
+              aria-label={`Evidence citation ${e.id} from ${e.source}`}
+              className="p-4 rounded-xs bg-[#FDFCFB] hover:bg-[#FAF0E6]/30 border border-[#121212]/15 hover:border-[#D94F33] transition-all cursor-pointer flex flex-col justify-between gap-2.5 text-xs shadow-2xs focus-visible:ring-2 focus-visible:ring-[#D94F33] focus-visible:outline-hidden"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -208,7 +229,7 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
 
               <div className="flex items-center justify-between text-[11px] text-[#57534E] pt-2 border-t border-[#121212]/10">
                 <span className="flex items-center gap-1 text-[#121212] font-medium">
-                  <Bookmark className="w-3 h-3 text-[#D94F33]" />
+                  <Bookmark className="w-3 h-3 text-[#D94F33]" aria-hidden="true" />
                   {e.source}
                 </span>
                 <span className="text-[#57534E] font-serif-editorial italic">{e.pageOrSection}</span>
@@ -220,4 +241,3 @@ export const EvidenceExplorer: React.FC<EvidenceExplorerProps> = ({
     </div>
   );
 };
-

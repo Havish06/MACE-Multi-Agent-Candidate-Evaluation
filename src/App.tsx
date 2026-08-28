@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Header,
   ActiveTab,
@@ -11,8 +11,13 @@ import { CandidateProfileView } from './components/CandidateProfileView';
 import { EvidenceModal } from './components/EvidenceModal';
 import { UploadModal } from './components/UploadModal';
 import { PipelineProgressModal } from './components/PipelineProgressModal';
-import { SAMPLE_CANDIDATES, BenchmarkCandidate } from './data/sampleCandidates';
+import { AuthModal } from './components/AuthModal';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { SAMPLE_CANDIDATES } from './data/sampleCandidates';
 import { DEFAULT_SESSIONS } from './data/defaultSessions';
+import { useAuth } from './lib/AuthContext';
+import { saveEvaluationToFirestore } from './lib/evaluationsService';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import {
   CandidateProfile,
   JobDescription,
@@ -23,23 +28,19 @@ import {
   PositionRevisionRecord,
   FinalDecision,
   AgentType,
+  CandidateEvaluationSession,
 } from './types';
 import {
   AlertTriangle,
-  Sparkles,
-  Bot,
-  Users,
   Shield,
   MessageSquareQuote,
-  FileCheck,
-  Layers,
-  ArrowRight,
   RotateCw,
-  HelpCircle,
-  Play
 } from 'lucide-react';
 
+const TAB_INDEX_MAP: ActiveTab[] = ['dossier', 'personas', 'debate', 'evidence', 'profile'];
+
 export default function App() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dossier');
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('cand-alex-rivera');
 
@@ -59,6 +60,8 @@ export default function App() {
   // Modals & UI State
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pipelineStep, setPipelineStep] = useState(1);
   const [stepTitle, setStepTitle] = useState('');
@@ -78,6 +81,58 @@ export default function App() {
         console.warn('Health check warning:', err);
       });
   }, []);
+
+  // Sync session to Firestore whenever final decision is ready
+  useEffect(() => {
+    if (finalDecision && selectedCandidateId) {
+      const sessionObj: CandidateEvaluationSession = {
+        id: selectedCandidateId,
+        createdAt: new Date().toISOString(),
+        candidateName: profile.name,
+        roleTitle: jobDescription.title,
+        candidateProfile: profile,
+        jobDescription,
+        evidenceStore,
+        independentAssessments: assessments,
+        disputes,
+        debateMessages,
+        finalDecision,
+        status: 'completed',
+      };
+      saveEvaluationToFirestore(sessionObj, user).catch(() => {});
+    }
+  }, [finalDecision, selectedCandidateId, profile, jobDescription, evidenceStore, assessments, disputes, debateMessages, user]);
+
+  // Keyboard Shortcuts Hook
+  const handleSelectTabByIndex = useCallback((index: number) => {
+    if (index >= 0 && index < TAB_INDEX_MAP.length) {
+      setActiveTab(TAB_INDEX_MAP[index]);
+    }
+  }, []);
+
+  const handleCloseAllModals = useCallback(() => {
+    setSelectedEvidenceId(null);
+    setIsUploadModalOpen(false);
+    setIsAuthModalOpen(false);
+    setIsShortcutsModalOpen(false);
+  }, []);
+
+  const handleFocusSearch = useCallback(() => {
+    setActiveTab('evidence');
+    setTimeout(() => {
+      const input = document.getElementById('evidence-search-input');
+      if (input) {
+        input.focus();
+      }
+    }, 50);
+  }, []);
+
+  useKeyboardShortcuts({
+    onSelectTab: handleSelectTabByIndex,
+    onToggleShortcutsModal: () => setIsShortcutsModalOpen((prev) => !prev),
+    onCloseModals: handleCloseAllModals,
+    onFocusSearch: handleFocusSearch,
+  });
 
   // Handle benchmark candidate selection
   const handleSelectCandidate = (candidateId: string) => {
@@ -266,6 +321,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] text-[#121212] flex flex-col font-sans selection:bg-[#D94F33] selection:text-white">
+      {/* Skip-to-content accessibility link for screen readers & keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#121212] focus:text-[#FDFCFB] focus:rounded-xs focus:shadow-lg focus:font-bold focus:text-xs"
+      >
+        Skip to main content
+      </a>
+
       {/* Header */}
       <Header
         activeTab={activeTab}
@@ -274,6 +337,8 @@ export default function App() {
         selectedCandidateId={selectedCandidateId}
         onSelectCandidate={handleSelectCandidate}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
         onRunFullPipeline={handleRunCurrentPipeline}
         isProcessing={isProcessing}
         pipelineStatus={pipelineStatus}
@@ -281,27 +346,30 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-6">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-6">
         {/* Error Banner */}
         {errorMessage && (
-          <div className="p-4 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] text-[#A82A2A] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div
+            role="alert"
+            className="p-4 rounded-xs bg-[#FDF0EE] border border-[#F0C4BD] text-[#A82A2A] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+          >
             <div className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="w-4 h-4 text-[#D94F33] shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-[#D94F33] shrink-0" aria-hidden="true" />
               <span>{errorMessage}</span>
             </div>
             <div className="flex items-center gap-2 self-end sm:self-auto">
               <button
                 type="button"
                 onClick={handleRunCurrentPipeline}
-                className="px-2.5 py-1 bg-[#D94F33] hover:bg-[#C03E24] text-white rounded-xs font-bold text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 bg-[#D94F33] hover:bg-[#C03E24] text-white rounded-xs font-bold text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#121212]"
               >
-                <RotateCw className="w-3 h-3" />
+                <RotateCw className="w-3 h-3" aria-hidden="true" />
                 <span>Retry</span>
               </button>
               <button
                 type="button"
                 onClick={() => setErrorMessage(null)}
-                className="px-2.5 py-1 bg-[#F0C4BD] hover:bg-[#E5ACA3] rounded-xs font-bold text-[10px] uppercase tracking-wider text-[#A82A2A] transition-colors cursor-pointer"
+                className="px-2.5 py-1 bg-[#F0C4BD] hover:bg-[#E5ACA3] rounded-xs font-bold text-[10px] uppercase tracking-wider text-[#A82A2A] transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#121212]"
               >
                 Dismiss
               </button>
@@ -316,9 +384,9 @@ export default function App() {
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#57534E]">Dossier Record:</span>
               <span className="font-serif-editorial font-bold text-[#121212] text-base">{profile.name}</span>
             </div>
-            <span className="text-[#121212]/30">•</span>
+            <span className="text-[#121212]/30" aria-hidden="true">•</span>
             <span className="text-[#D94F33] font-bold font-serif-editorial text-sm">{jobDescription.title}</span>
-            <span className="text-[#121212]/30">•</span>
+            <span className="text-[#121212]/30" aria-hidden="true">•</span>
             <span className="text-[#57534E] font-mono text-[11px]">
               {evidenceStore.length} Verified Evidence Snippets
             </span>
@@ -329,14 +397,15 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('evidence')}
-                className="px-3 py-1 rounded-xs bg-[#FDF0EE] text-[#A82A2A] border border-[#F0C4BD] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#F9DFDC] transition-colors cursor-pointer"
+                aria-label={`View ${profile.contradictions.length} flagged document contradictions`}
+                className="px-3 py-1 rounded-xs bg-[#FDF0EE] text-[#A82A2A] border border-[#F0C4BD] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#F9DFDC] transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#D94F33]"
               >
-                <AlertTriangle className="w-3.5 h-3.5 text-[#D94F33]" />
+                <AlertTriangle className="w-3.5 h-3.5 text-[#D94F33]" aria-hidden="true" />
                 <span>{profile.contradictions.length} Contradictions Flagged</span>
               </button>
             ) : (
               <span className="px-3 py-1 rounded-xs bg-[#E9F2EC] text-[#2D5A3F] border border-[#B4D5C2] text-[10px] uppercase tracking-wider font-bold flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-[#2D5A3F]" />
+                <Shield className="w-3.5 h-3.5 text-[#2D5A3F]" aria-hidden="true" />
                 <span>0 Document Inconsistencies</span>
               </span>
             )}
@@ -345,9 +414,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('debate')}
-                className="px-3 py-1 rounded-xs bg-[#FAF0E6] text-[#8C510A] border border-[#E5CFB8] text-[10px] uppercase tracking-wider font-bold flex items-center gap-1.5 hover:bg-[#F5E4D3] transition-colors cursor-pointer"
+                aria-label="View calibrated debate positions in live debate"
+                className="px-3 py-1 rounded-xs bg-[#FAF0E6] text-[#8C510A] border border-[#E5CFB8] text-[10px] uppercase tracking-wider font-bold flex items-center gap-1.5 hover:bg-[#F5E4D3] transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#D94F33]"
               >
-                <MessageSquareQuote className="w-3.5 h-3.5 text-[#C2781D]" />
+                <MessageSquareQuote className="w-3.5 h-3.5 text-[#C2781D]" aria-hidden="true" />
                 <span>Debate Position Calibrated</span>
               </button>
             )}
@@ -449,9 +519,9 @@ export default function App() {
       <footer className="border-t border-[#121212]/15 bg-[#FDFCFB] py-5 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#57534E]">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-serif-editorial font-bold text-[#121212]">AI Hiring Panel</span>
+            <span className="font-serif-editorial font-bold text-[#121212]">MACE</span>
             <span>—</span>
-            <span>Editorial Multi-Agent Deliberation & Adjudication Journal</span>
+            <span>Multi-Agent Committee Evaluator & Adjudication Journal</span>
           </div>
           <div className="font-mono text-[11px]">Powered by Google Gemini 3.7 Flash</div>
         </div>
@@ -479,6 +549,18 @@ export default function App() {
         currentStep={pipelineStep}
         stepTitle={stepTitle}
         stepDescription={stepDescription}
+      />
+
+      {/* Firebase Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
       />
     </div>
   );

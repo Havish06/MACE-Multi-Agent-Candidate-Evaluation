@@ -1,6 +1,6 @@
-# AI Hiring Panel
+# MACE — Multi-Agent Committee Evaluator
 
-**AI Hiring Panel** is an adversarial, multi-agent evaluation platform that models an executive hiring committee. By orchestrating four distinct evaluator personas through structured dialectic debate and rigorous primary-document cross-examination, the system audits candidate claims, resolves disagreements, and produces evidence-weighted hiring decisions.
+**MACE** is an adversarial, multi-agent evaluation platform that models an executive hiring committee. By orchestrating four distinct evaluator personas through structured dialectic debate and rigorous primary-document cross-examination, the system audits candidate claims, resolves disagreements, and produces evidence-weighted hiring decisions.
 
 ---
 

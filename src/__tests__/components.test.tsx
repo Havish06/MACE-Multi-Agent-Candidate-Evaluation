@@ -10,6 +10,7 @@ import { DebateRoom } from '../components/DebateRoom';
 import { EvidenceExplorer } from '../components/EvidenceExplorer';
 import { CandidateProfileView } from '../components/CandidateProfileView';
 import { FinalReportView } from '../components/FinalReportView';
+import { AuthProvider } from '../lib/AuthContext';
 
 describe('UI Components & Accessibility Verification', () => {
   const mockCandidate = SAMPLE_CANDIDATES[0];
@@ -17,23 +18,26 @@ describe('UI Components & Accessibility Verification', () => {
 
   it('renders Header with accessible buttons and semantic navigation', () => {
     render(
-      <Header
-        activeTab="dossier"
-        setActiveTab={() => {}}
-        benchmarkCandidates={SAMPLE_CANDIDATES}
-        selectedCandidateId={mockCandidate.id}
-        onSelectCandidate={() => {}}
-        onOpenUploadModal={() => {}}
-        onRunFullPipeline={() => {}}
-        isProcessing={false}
-        pipelineStatus=""
-        hasGeminiKey={true}
-      />
+      <AuthProvider>
+        <Header
+          activeTab="dossier"
+          setActiveTab={() => {}}
+          benchmarkCandidates={SAMPLE_CANDIDATES}
+          selectedCandidateId={mockCandidate.id}
+          onSelectCandidate={() => {}}
+          onOpenUploadModal={() => {}}
+          onRunFullPipeline={() => {}}
+          isProcessing={false}
+          pipelineStatus=""
+          hasGeminiKey={true}
+        />
+      </AuthProvider>
     );
 
-    expect(screen.getByText(/AI Hiring Panel/i)).toBeInTheDocument();
+    expect(screen.getByText(/MACE/i)).toBeInTheDocument();
     expect(screen.getByRole('tablist', { name: /Evaluation Navigation/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /Adjudication Dossier/i })).toBeInTheDocument();
+    expect(screen.getByText(/Sign In/i)).toBeInTheDocument();
   });
 
   it('renders EvidenceBadge with accessible role and title', () => {

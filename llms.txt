@@ -1,0 +1,17 @@
+# MACE - Multi-Agent Committee Evaluator
+
+> MACE is an explainable, multi-agent AI hiring evaluation and adversarial adjudication platform powered by Google Gemini 3.7 Flash. It coordinates four independent specialist agents (Technical Architect, Culture & Behavioral, Hiring Manager Lead, and Risk Auditor) through multi-turn dialectical debate, evidence verification, and non-averaging adjudication.
+
+## Core Capabilities
+
+- [Adjudication Dossier](/): Evidence-weighted synthesis of candidate qualifications, hiring recommendations, confidence scores, and calibrated risk assessments.
+- [Independent Agent Panel](/): Isolated evaluations by Technical Architect, Culture Lead, Hiring Manager Lead, and Risk Skeptic without groupthink bias.
+- [Voice Debate Arena](/): Turn-based adversarial dialectic where agents challenge claims, defend hypotheses, and calibrate positions using audio synthesis.
+- [Evidence Repository](/): Ground-truth citation index linking claims directly to verified lines and snippets in resumes and official transcripts.
+- [Contradiction Analysis](/): Cross-document verification highlighting discrepancies between self-reported resume claims and official academic records.
+
+## Architecture & Integration
+
+- [Gemini 3.7 Flash Backend](/api/health): Server-side LLM processing pipeline for document extraction, agent reasoning, and multi-turn debate simulation.
+- [Firebase Persistence](/): Secure Firestore database integration with role-based security rules and OAuth authentication.
+- [Accessibility & Keyboard Navigation](/): WCAG AA compliant interface with complete keyboard shortcut navigation and screen reader support.

@@ -1,24 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import {
   MessageSquare,
   Volume2,
-  VolumeX,
   Play,
   Pause,
   SkipForward,
   RotateCcw,
   Sparkles,
-  TrendingDown,
   ArrowRight,
-  ShieldCheck,
-  AlertTriangle,
-  Flame,
   Code2,
   Users2,
   Briefcase,
   AlertOctagon,
   Radio,
-  Award
+  Award,
+  Flame
 } from 'lucide-react';
 import {
   DebateMessage,
@@ -29,6 +25,7 @@ import {
   StanceType
 } from '../types';
 import { EvidenceBadge } from './EvidenceBadge';
+import { useDebateAudio } from '../hooks/useDebateAudio';
 
 interface DebateRoomProps {
   debateMessages: DebateMessage[];
@@ -39,43 +36,24 @@ interface DebateRoomProps {
 }
 
 export const DebateRoom: React.FC<DebateRoomProps> = ({
-  debateMessages,
-  disputes,
-  positionRevisions = [],
-  evidenceStore,
+  debateMessages = [],
+  disputes = [],
+  evidenceStore = [],
   onSelectEvidence,
 }) => {
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [currentMessageIndex, setCurrentMessageIndex] = useState<number>(-1);
-  const [audioSpeed, setAudioSpeed] = useState<number>(1.0);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
   const messagesList = debateMessages || [];
   const disputesList = disputes || [];
 
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      synthRef.current = window.speechSynthesis;
-      const loadVoices = () => {
-        if (synthRef.current) {
-          const v = synthRef.current.getVoices();
-          if (v && v.length > 0) setAvailableVoices(v);
-        }
-      };
-      loadVoices();
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-      }
-    }
-    return () => {
-      if (synthRef.current) {
-        synthRef.current.cancel();
-      }
-    };
-  }, []);
+  const {
+    isPlaying,
+    currentIndex,
+    speed,
+    togglePlay,
+    speakTurn,
+    skipNext,
+    restart,
+    cycleSpeed,
+  } = useDebateAudio(messagesList);
 
   const getSpeakerMeta = (type: AgentType) => {
     switch (type) {
@@ -84,45 +62,35 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
           title: 'Dr. Elena Rostova (Technical Architect)',
           badgeColor: 'bg-[#E9F2EC] text-[#2D5A3F] border-[#B4D5C2]',
           avatarBg: 'bg-[#2D5A3F]',
-          icon: <Code2 className="w-3.5 h-3.5 text-white" />,
-          voicePitch: 1.1,
-          voiceRate: 1.05,
+          icon: <Code2 className="w-3.5 h-3.5 text-white" aria-hidden="true" />,
         };
       case 'hr':
         return {
           title: 'Marcus Vance-Cole (Head of Culture)',
           badgeColor: 'bg-[#FAF0E6] text-[#8C510A] border-[#E5CFB8]',
           avatarBg: 'bg-[#C2781D]',
-          icon: <Users2 className="w-3.5 h-3.5 text-white" />,
-          voicePitch: 0.95,
-          voiceRate: 1.0,
+          icon: <Users2 className="w-3.5 h-3.5 text-white" aria-hidden="true" />,
         };
       case 'hiring_manager':
         return {
           title: 'David Sterling (Hiring Lead)',
           badgeColor: 'bg-[#FDF0EE] text-[#A82A2A] border-[#F0C4BD]',
           avatarBg: 'bg-[#D94F33]',
-          icon: <Briefcase className="w-3.5 h-3.5 text-white" />,
-          voicePitch: 0.85,
-          voiceRate: 0.95,
+          icon: <Briefcase className="w-3.5 h-3.5 text-white" aria-hidden="true" />,
         };
       case 'skeptic':
         return {
           title: 'Arthur Pendelton (Risk Auditor)',
           badgeColor: 'bg-[#FDF0EE] text-[#A82A2A] border-[#F0C4BD]',
           avatarBg: 'bg-[#A82A2A]',
-          icon: <AlertOctagon className="w-3.5 h-3.5 text-white" />,
-          voicePitch: 0.8,
-          voiceRate: 1.0,
+          icon: <AlertOctagon className="w-3.5 h-3.5 text-white" aria-hidden="true" />,
         };
       default:
         return {
           title: 'Committee Member',
           badgeColor: 'bg-[#EFECE7] text-[#121212] border-[#121212]/20',
           avatarBg: 'bg-[#121212]',
-          icon: <Sparkles className="w-3.5 h-3.5 text-white" />,
-          voicePitch: 1.0,
-          voiceRate: 1.0,
+          icon: <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />,
         };
     }
   };
@@ -145,95 +113,20 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
     }
   };
 
-  const speakTurn = (index: number) => {
-    if (!synthRef.current || index < 0 || index >= messagesList.length) {
-      setIsPlayingAudio(false);
-      return;
-    }
-
-    synthRef.current.cancel();
-    const msg = messagesList[index];
-    if (!msg) {
-      setIsPlayingAudio(false);
-      return;
-    }
-
-    const meta = getSpeakerMeta(msg.speaker);
-
-    setCurrentMessageIndex(index);
-    setIsPlayingAudio(true);
-
-    const textToSpeak = `${msg.speakerName} says: ${msg.message}`;
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utteranceRef.current = utterance;
-
-    utterance.pitch = meta.voicePitch;
-    utterance.rate = meta.voiceRate * audioSpeed;
-
-    const voices = availableVoices.length > 0 ? availableVoices : (synthRef.current.getVoices() || []);
-    if (voices.length > 0) {
-      if (msg.speaker === 'technical') {
-        const fVoice = voices.find((v) => v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Google UK English Female'));
-        if (fVoice) utterance.voice = fVoice;
-      } else if (msg.speaker === 'skeptic') {
-        const dVoice = voices.find((v) => v.name.includes('David') || v.name.includes('George') || v.name.includes('Male') || v.name.includes('Google UK English Male'));
-        if (dVoice) utterance.voice = dVoice;
-      }
-    }
-
-    utterance.onend = () => {
-      if (index + 1 < messagesList.length) {
-        speakTurn(index + 1);
-      } else {
-        setIsPlayingAudio(false);
-      }
-    };
-
-    utterance.onerror = () => {
-      setIsPlayingAudio(false);
-    };
-
-    synthRef.current.speak(utterance);
-  };
-
-  const togglePlayAudio = () => {
-    if (isPlayingAudio) {
-      if (synthRef.current) synthRef.current.cancel();
-      setIsPlayingAudio(false);
-    } else {
-      const nextIdx = currentMessageIndex >= 0 && currentMessageIndex < messagesList.length ? currentMessageIndex : 0;
-      speakTurn(nextIdx);
-    }
-  };
-
-  const skipNextTurn = () => {
-    const nextIdx = currentMessageIndex + 1;
-    if (nextIdx < messagesList.length) {
-      speakTurn(nextIdx);
-    } else {
-      if (synthRef.current) synthRef.current.cancel();
-      setIsPlayingAudio(false);
-    }
-  };
-
-  const resetDebatePlayback = () => {
-    if (synthRef.current) synthRef.current.cancel();
-    setCurrentMessageIndex(0);
-    speakTurn(0);
-  };
-
-  const cycleSpeed = () => {
-    const next = audioSpeed === 1.0 ? 1.25 : audioSpeed === 1.25 ? 1.5 : 1.0;
-    setAudioSpeed(next);
-  };
-
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300" role="region" aria-label="Adversarial Debate Room">
+      {/* Live accessibility announcer for screen readers */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isPlaying && currentIndex >= 0 && messagesList[currentIndex]
+          ? `Speaking now: ${messagesList[currentIndex].speakerName}, round ${messagesList[currentIndex].round}`
+          : 'Debate audio is idle'}
+      </div>
+
       {/* Voice Debate Controls Bar */}
       <div className="p-4 sm:p-5 rounded-xs bg-[#FFFFFF] border border-[#121212]/15 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xs">
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="p-2.5 rounded-xs bg-[#F4F1EA] border border-[#121212]/10 text-[#D94F33] shrink-0">
-            <Volume2 className="w-5 h-5" />
+            <Volume2 className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -241,7 +134,7 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
                 Interactive Voice Debate Chamber
               </h3>
               <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#E9F2EC] text-[#2D5A3F] border border-[#B4D5C2] rounded-xs flex items-center gap-1">
-                <Radio className="w-2.5 h-2.5 animate-pulse text-[#2D5A3F]" />
+                <Radio className="w-2.5 h-2.5 animate-pulse text-[#2D5A3F]" aria-hidden="true" />
                 Audio Synthesis Active
               </span>
             </div>
@@ -256,31 +149,33 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
             id="btn-toggle-audio-speed"
             type="button"
             onClick={cycleSpeed}
-            className="px-2.5 py-2 text-xs font-mono font-bold bg-[#FFFFFF] hover:bg-[#F4F1EA] text-[#121212] border border-[#121212]/20 rounded-xs transition-colors cursor-pointer shadow-2xs"
+            aria-label={`Current playback speed ${speed}x. Click to cycle speed.`}
+            className="px-2.5 py-2 text-xs font-mono font-bold bg-[#FFFFFF] hover:bg-[#F4F1EA] text-[#121212] border border-[#121212]/20 rounded-xs transition-colors cursor-pointer shadow-2xs focus-visible:ring-2 focus-visible:ring-[#D94F33]"
             title="Toggle Audio Playback Speed"
           >
-            {audioSpeed}x
+            {speed}x
           </button>
 
           <button
             id="btn-play-voice-debate"
             type="button"
-            onClick={togglePlayAudio}
+            onClick={togglePlay}
             disabled={messagesList.length === 0}
-            className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xs shadow-xs transition-all cursor-pointer disabled:opacity-50 ${
-              isPlayingAudio
+            aria-label={isPlaying ? 'Pause Voice Debate' : 'Play Voice Debate'}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xs shadow-xs transition-all cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
+              isPlaying
                 ? 'bg-[#121212] hover:bg-[#2A2A2A] text-[#FDFCFB]'
                 : 'bg-[#D94F33] hover:bg-[#B83A20] text-white'
             }`}
           >
-            {isPlayingAudio ? (
+            {isPlaying ? (
               <>
-                <Pause className="w-4 h-4" />
+                <Pause className="w-4 h-4" aria-hidden="true" />
                 <span>Pause Debate Audio</span>
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-4 h-4 fill-current" aria-hidden="true" />
                 <span>Play Voice Debate</span>
               </>
             )}
@@ -289,23 +184,25 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
           <button
             id="btn-skip-debate-turn"
             type="button"
-            onClick={skipNextTurn}
-            disabled={currentMessageIndex >= messagesList.length - 1 || messagesList.length === 0}
-            className="p-2 rounded-xs bg-[#FFFFFF] hover:bg-[#F4F1EA] text-[#121212] border border-[#121212]/20 transition-colors disabled:opacity-40 cursor-pointer shadow-2xs"
+            onClick={skipNext}
+            disabled={currentIndex >= messagesList.length - 1 || messagesList.length === 0}
+            aria-label="Skip to Next Speaker"
+            className="p-2 rounded-xs bg-[#FFFFFF] hover:bg-[#F4F1EA] text-[#121212] border border-[#121212]/20 transition-colors disabled:opacity-40 cursor-pointer shadow-2xs focus-visible:ring-2 focus-visible:ring-[#D94F33]"
             title="Next Speaker"
           >
-            <SkipForward className="w-4 h-4" />
+            <SkipForward className="w-4 h-4" aria-hidden="true" />
           </button>
 
           <button
             id="btn-restart-debate-turn"
             type="button"
-            onClick={resetDebatePlayback}
+            onClick={restart}
             disabled={messagesList.length === 0}
-            className="p-2 rounded-xs bg-[#FFFFFF] hover:bg-[#F4F1EA] text-[#121212] border border-[#121212]/20 transition-colors disabled:opacity-40 cursor-pointer shadow-2xs"
+            aria-label="Restart debate audio from beginning"
+            className="p-2 rounded-xs bg-[#FFFFFF] hover:bg-[#F4F1EA] text-[#121212] border border-[#121212]/20 transition-colors disabled:opacity-40 cursor-pointer shadow-2xs focus-visible:ring-2 focus-visible:ring-[#D94F33]"
             title="Restart from Round 1"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -315,7 +212,7 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
         <div className="p-5 rounded-xs bg-[#FFFFFF] border border-[#121212]/15 space-y-3.5 shadow-2xs">
           <div className="flex items-center justify-between pb-2 border-b border-[#121212]/10">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#121212] flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-[#D94F33]" />
+              <Flame className="w-4 h-4 text-[#D94F33]" aria-hidden="true" />
               <span>Identified Key Committee Disagreements ({disputesList.length})</span>
             </span>
             <span className="text-xs text-[#57534E] font-serif-editorial italic">Targeted Multi-Turn Dialectic</span>
@@ -368,25 +265,26 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
       {/* Debate Timeline Messages */}
       {messagesList.length === 0 ? (
         <div className="p-8 text-center bg-[#FFFFFF] border border-[#121212]/15 rounded-xs space-y-3">
-          <MessageSquare className="w-8 h-8 text-[#D94F33] mx-auto opacity-70" />
+          <MessageSquare className="w-8 h-8 text-[#D94F33] mx-auto opacity-70" aria-hidden="true" />
           <h4 className="font-serif-editorial font-bold text-base text-[#121212]">Debate Not Yet Initialized</h4>
           <p className="text-xs text-[#57534E] max-w-md mx-auto">
             Click "Run Agent Debate" in the top header bar to trigger the multi-turn adversarial deliberation across Technical, HR, Hiring Manager, and Skeptic agents.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" role="feed" aria-label="Debate transcripts feed">
           {messagesList.map((msg, index) => {
             const meta = getSpeakerMeta(msg.speaker);
-            const isCurrentlySpeaking = isPlayingAudio && currentMessageIndex === index;
+            const isCurrentlySpeaking = isPlaying && currentIndex === index;
 
             return (
-              <div
+              <article
                 key={msg.id || `msg-${index}`}
                 id={`debate-message-${msg.id || index}`}
+                aria-current={isCurrentlySpeaking ? 'true' : undefined}
                 className={`p-5 sm:p-6 rounded-xs border transition-all shadow-2xs ${
                   isCurrentlySpeaking
-                    ? 'bg-[#FAF0E6]/60 border-[#D94F33] ring-1 ring-[#D94F33]'
+                    ? 'bg-[#FAF0E6]/60 border-[#D94F33] ring-2 ring-[#D94F33]'
                     : 'bg-[#FFFFFF] border-[#121212]/15 hover:border-[#121212]/30'
                 }`}
               >
@@ -422,12 +320,13 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
                     <button
                       type="button"
                       onClick={() => speakTurn(index)}
-                      className={`p-1 rounded transition-colors cursor-pointer ${
+                      aria-label={`Play audio for ${msg.speakerName}'s statement`}
+                      className={`p-1 rounded transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#D94F33] ${
                         isCurrentlySpeaking ? 'text-[#D94F33] bg-[#FAF0E6]' : 'text-[#57534E] hover:text-[#D94F33] hover:bg-[#F4F1EA]'
                       }`}
                       title="Speak this turn"
                     >
-                      <Volume2 className="w-4 h-4" />
+                      <Volume2 className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -440,12 +339,12 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
                 {/* Position Revision Highlight */}
                 {msg.changedPosition && (
                   <div className="mt-3.5 sm:ml-4 p-3 rounded-xs bg-[#FAF0E6] border border-[#E5CFB8] flex items-start gap-2.5 text-xs text-[#8C510A]">
-                    <Award className="w-4 h-4 text-[#C2781D] shrink-0 mt-0.5" />
+                    <Award className="w-4 h-4 text-[#C2781D] shrink-0 mt-0.5" aria-hidden="true" />
                     <div>
                       <div className="font-bold flex items-center gap-2">
                         <span className="font-serif-editorial">Position Calibrated During Debate:</span>
                         <span className="font-mono text-[#57534E] line-through">{msg.previousConfidence}%</span>
-                        <ArrowRight className="w-3 h-3 text-[#C2781D]" />
+                        <ArrowRight className="w-3 h-3 text-[#C2781D]" aria-hidden="true" />
                         <span className="font-mono font-bold text-[#8C510A]">{msg.newConfidence}% Confidence</span>
                       </div>
                       {msg.revisionReason && (
@@ -473,7 +372,7 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
                     </div>
                   </div>
                 )}
-              </div>
+              </article>
             );
           })}
         </div>
@@ -481,4 +380,3 @@ export const DebateRoom: React.FC<DebateRoomProps> = ({
     </div>
   );
 };
-
